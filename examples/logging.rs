@@ -51,7 +51,7 @@ impl MyActorHandle {
 
 #[tokio::main]
 async fn main() {
-    simple_log::quick!("debug");
+    simple_log::console("debug").unwrap();
     let handle = MyActorHandle::new();
     println!("initial counter: {}", handle.get().await);
     for _ in 0..100 {
