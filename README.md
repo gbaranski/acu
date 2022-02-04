@@ -2,6 +2,8 @@
 
 Utility crate for building asynchronous actors.
 
+Before using this crate, I'd recommend to get to know of the actor pattern in Rust, [Alice Ryhl](https://ryhl.io) created a very useful [blog post](https://ryhl.io/blog/actors-with-tokio/).
+
 ## Getting started
 
 ##### Add crate to dependencies
@@ -84,3 +86,7 @@ simple_log::quick!("debug");
 ```
 
 Then each call/notify on the actor will get logged.
+
+## Motivation
+
+I wanted to use some structs and functions in few of my projects, including [Houseflow](https://github.com/gbaranski/houseflow). And I thought this might be useful for other projects as well.
