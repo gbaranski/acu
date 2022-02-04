@@ -3,14 +3,14 @@ use tokio::sync::oneshot;
 
 #[derive(Debug)]
 pub struct Sender<M: std::fmt::Debug> {
-    name: &'static str,
+    pub name: &'static str,
     sender: mpsc::Sender<M>,
 }
 
 impl<M: std::fmt::Debug> Clone for Sender<M> {
     fn clone(&self) -> Self {
         Self {
-            name: self.name.clone(),
+            name: self.name,
             sender: self.sender.clone(),
         }
     }
@@ -23,7 +23,10 @@ impl<M: std::fmt::Debug> Sender<M> {
 
     /// Send message to the receiver expecting a response.
     /// Message is constructed by calling message_fn
-    pub async fn call<R: std::fmt::Debug>(&self, message_fn: impl FnOnce(oneshot::Sender<R>) -> M) -> R {
+    pub async fn call<R: std::fmt::Debug>(
+        &self,
+        message_fn: impl FnOnce(oneshot::Sender<R>) -> M,
+    ) -> R {
         let (tx, rx) = oneshot::channel();
         let message = message_fn(tx);
 
@@ -69,7 +72,6 @@ impl<M: std::fmt::Debug> std::ops::DerefMut for Receiver<M> {
         &mut self.receiver
     }
 }
-
 
 /// Creates a bounded mpsc channel for communicating between actors with backpressure.
 ///
