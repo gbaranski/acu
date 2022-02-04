@@ -79,7 +79,7 @@ async fn main() {
 }
 ```
 
-or if you would like to make use of logging functionality, add `log` feature to the `acu` dependency, and initialize `log`, for example by using [simple-log](https://lib.rs/crates/simple-log) crate:
+or if you would like to make use of logging functionality, you need to initialize `log`, for example by using [simple-log](https://lib.rs/crates/simple-log) crate:
 ```rust
 // at the top of the main function
 simple_log::quick!("debug");
