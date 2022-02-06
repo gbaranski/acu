@@ -1,13 +1,28 @@
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-#[derive(Debug)]
-pub struct Sender<M: std::fmt::Debug> {
+pub struct Sender<M> {
     pub name: &'static str,
     sender: mpsc::Sender<M>,
 }
 
-impl<M: std::fmt::Debug> Clone for Sender<M> {
+impl<M> std::fmt::Debug for Sender<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Sender")
+            .field("name", &self.name)
+            .field(
+                "sender",
+                if self.sender.is_closed() {
+                    &"closed"
+                } else {
+                    &"open"
+                },
+            )
+            .finish()
+    }
+}
+
+impl<M> Clone for Sender<M> {
     fn clone(&self) -> Self {
         Self {
             name: self.name,
@@ -54,12 +69,18 @@ impl<M: std::fmt::Debug> Sender<M> {
     }
 }
 
-#[derive(Debug)]
-pub struct Receiver<M: std::fmt::Debug> {
+pub struct Receiver<M> {
+    pub name: &'static str,
     receiver: mpsc::Receiver<M>,
 }
 
-impl<M: std::fmt::Debug> std::ops::Deref for Receiver<M> {
+impl<M> std::fmt::Debug for Receiver<M> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Name").field("name", &self.name).finish()
+    }
+}
+
+impl<M> std::ops::Deref for Receiver<M> {
     type Target = mpsc::Receiver<M>;
 
     fn deref(&self) -> &Self::Target {
@@ -67,7 +88,7 @@ impl<M: std::fmt::Debug> std::ops::Deref for Receiver<M> {
     }
 }
 
-impl<M: std::fmt::Debug> std::ops::DerefMut for Receiver<M> {
+impl<M> std::ops::DerefMut for Receiver<M> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.receiver
     }
@@ -92,8 +113,8 @@ impl<M: std::fmt::Debug> std::ops::DerefMut for Receiver<M> {
 /// # Panics
 ///
 /// Panics if the buffer capacity is 0.
-pub fn channel<M: std::fmt::Debug>(buffer: usize, name: &'static str) -> (Sender<M>, Receiver<M>) {
+pub fn channel<M>(buffer: usize, name: &'static str) -> (Sender<M>, Receiver<M>) {
     let (sender, receiver) = mpsc::channel(buffer);
 
-    (Sender { name, sender }, Receiver { receiver })
+    (Sender { name, sender }, Receiver { name, receiver })
 }
