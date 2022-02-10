@@ -1,12 +1,27 @@
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-pub struct Sender<M> {
-    pub name: &'static str,
+pub trait Message: std::fmt::Debug + Send + Sync {}
+
+pub trait Name: std::fmt::Debug + std::fmt::Display + AsRef<str> + Send + Sync + Clone {}
+
+impl Name for &'static str {}
+
+pub struct Sender<M: Message, N: Name> {
+    pub name: N,
     sender: mpsc::Sender<M>,
 }
 
-impl<M> std::fmt::Debug for Sender<M> {
+impl<M: Message, N: Name> Clone for Sender<M, N> {
+    fn clone(&self) -> Self {
+        Self {
+            name: self.name.clone(),
+            sender: self.sender.clone(),
+        }
+    }
+}
+
+impl<M: Message, N: Name> std::fmt::Debug for Sender<M, N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Sender")
             .field("name", &self.name)
@@ -22,20 +37,13 @@ impl<M> std::fmt::Debug for Sender<M> {
     }
 }
 
-impl<M> Clone for Sender<M> {
-    fn clone(&self) -> Self {
-        Self {
-            name: self.name,
-            sender: self.sender.clone(),
-        }
-    }
-}
-
-impl<M: std::fmt::Debug> Sender<M> {
+impl<M: Message, N: Name> Sender<M, N> {
     pub async fn closed(&self) {
         self.sender.closed().await;
     }
+}
 
+impl<M: Message, N: Name> Sender<M, N> {
     /// Send message to the receiver expecting a response.
     /// Message is constructed by calling message_fn
     pub async fn call<R: std::fmt::Debug>(
@@ -69,18 +77,18 @@ impl<M: std::fmt::Debug> Sender<M> {
     }
 }
 
-pub struct Receiver<M> {
-    pub name: &'static str,
+pub struct Receiver<M: Message, N: Name> {
+    pub name: N,
     receiver: mpsc::Receiver<M>,
 }
 
-impl<M> std::fmt::Debug for Receiver<M> {
+impl<M: Message, N: Name> std::fmt::Debug for Receiver<M, N> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("Name").field("name", &self.name).finish()
     }
 }
 
-impl<M> std::ops::Deref for Receiver<M> {
+impl<M: Message, N: Name> std::ops::Deref for Receiver<M, N> {
     type Target = mpsc::Receiver<M>;
 
     fn deref(&self) -> &Self::Target {
@@ -88,7 +96,7 @@ impl<M> std::ops::Deref for Receiver<M> {
     }
 }
 
-impl<M> std::ops::DerefMut for Receiver<M> {
+impl<M: Message, N: Name> std::ops::DerefMut for Receiver<M, N> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.receiver
     }
@@ -113,8 +121,83 @@ impl<M> std::ops::DerefMut for Receiver<M> {
 /// # Panics
 ///
 /// Panics if the buffer capacity is 0.
-pub fn channel<M>(buffer: usize, name: &'static str) -> (Sender<M>, Receiver<M>) {
+pub fn channel<M: Message, N: Name>(buffer: usize, name: N) -> (Sender<M, N>, Receiver<M, N>) {
     let (sender, receiver) = mpsc::channel(buffer);
 
+    (
+        Sender {
+            name: name.clone(),
+            sender,
+        },
+        Receiver {
+            name: name.clone(),
+            receiver,
+        },
+    )
+}
+
+use async_trait::async_trait;
+
+#[async_trait]
+pub trait Handle<M: Message, N: Name>: Send + Sync + 'static {
+    fn sender(&self) -> &Sender<M, N>;
+
+    fn name(&self) -> N {
+        self.sender().name.clone()
+    }
+
+    async fn wait_for_stop(&self) {
+        let sender = self.sender().clone();
+        sender.closed().await
+    }
+}
+
+use std::future::Future;
+use std::marker::PhantomData;
+use std::pin::Pin;
+
+pub struct MasterHandle<M: Message, N: Name, H: Handle<M, N>> {
+    // TODO: Consider making use of HashSet<H> instead of Vec<H> to optimize `get` function
+    slaves: Vec<H>,
+    message_phantom: PhantomData<M>,
+    name_phantom: PhantomData<N>,
+}
+
+impl<M: Message, N: Name, H: Handle<M, N>> MasterHandle<M, N, H> {
+    pub fn new(slaves: Vec<H>) -> Self {
+        Self {
+            slaves,
+            message_phantom: Default::default(),
+            name_phantom: Default::default(),
+        }
+    }
+
+    pub fn names(&self) -> Vec<N> {
+        self.slaves.iter().map(Handle::name).collect()
+    }
+}
+
+impl<M: Message, N: Name + PartialOrd, H: Handle<M, N>> MasterHandle<M, N, H> {
+    pub fn get(&self, name: N) -> Option<&H> {
+        self.slaves.iter().find(|h| h.name() == name)
+    }
+}
+
+impl<'s, M: Message, N: Name, H: Handle<M, N>> MasterHandle<M, N, H> {
+    pub async fn execute_on_all<'a, O>(
+        &'s self,
+        f: impl Fn(&'s H) -> Pin<Box<dyn Future<Output = O> + Send + 'a>> + 'a,
+    ) -> Vec<O> {
+        use futures::stream::FuturesOrdered;
+        use futures::StreamExt;
+
+        let mut futures = FuturesOrdered::new();
+        for future in self.slaves.iter().map(f) {
+            futures.push(future)
+        }
+
+        futures.collect().await
+    }
+}
     (Sender { name, sender }, Receiver { name, receiver })
 }

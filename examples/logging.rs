@@ -6,8 +6,10 @@ enum Message {
     Get { respond_to: oneshot::Sender<usize> },
 }
 
+impl acu::Message for Message {}
+
 struct MyActor {
-    receiver: acu::Receiver<Message>,
+    receiver: acu::Receiver<Message, &'static str>,
     counter: usize,
 }
 
@@ -24,7 +26,7 @@ impl MyActor {
 
 #[derive(Debug, Clone)]
 struct MyActorHandle {
-    sender: acu::Sender<Message>,
+    sender: acu::Sender<Message, &'static str>,
 }
 
 impl MyActorHandle {
