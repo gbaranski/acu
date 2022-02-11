@@ -1,7 +1,7 @@
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-pub trait Message: std::fmt::Debug + Send + Sync {}
+pub trait Message: std::fmt::Debug + Send  {}
 
 pub trait Name: std::fmt::Debug + std::fmt::Display + Send + Sync + Clone {}
 
@@ -139,7 +139,7 @@ pub fn channel<M: Message, N: Name>(buffer: usize, name: N) -> (Sender<M, N>, Re
 use async_trait::async_trait;
 
 #[async_trait]
-pub trait Handle<M: Message, N: Name>: Send + Sync + 'static {
+pub trait Handle<M: Message, N: Name> {
     fn sender(&self) -> &Sender<M, N>;
 
     fn name(&self) -> N {
