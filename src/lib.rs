@@ -1,7 +1,7 @@
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-pub trait Message: std::fmt::Debug + Send  {}
+pub trait Message: std::fmt::Debug + Send {}
 
 pub trait Name: std::fmt::Debug + std::fmt::Display + Send + Sync + Clone {}
 
@@ -155,18 +155,30 @@ pub trait Handle<M: Message, N: Name> {
 use std::future::Future;
 use std::marker::PhantomData;
 use std::pin::Pin;
+use std::sync::Arc;
 
 pub struct MasterHandle<M: Message, N: Name, H: Handle<M, N>> {
     // TODO: Consider making use of HashSet<H> instead of Vec<H> to optimize `get` function
-    slaves: Vec<H>,
+    // Is Arc good there?
+    slaves: Arc<Vec<H>>,
     message_phantom: PhantomData<M>,
     name_phantom: PhantomData<N>,
+}
+
+impl<M: Message, N: Name, H: Handle<M, N>> Clone for MasterHandle<M, N, H> {
+    fn clone(&self) -> Self {
+        Self {
+            slaves: self.slaves.clone(),
+            message_phantom: self.message_phantom.clone(),
+            name_phantom: self.name_phantom.clone(),
+        }
+    }
 }
 
 impl<M: Message, N: Name, H: Handle<M, N>> MasterHandle<M, N, H> {
     pub fn new(slaves: Vec<H>) -> Self {
         Self {
-            slaves,
+            slaves: Arc::new(slaves),
             message_phantom: Default::default(),
             name_phantom: Default::default(),
         }
@@ -286,7 +298,6 @@ mod tests {
         }
     }
 
-
     #[tokio::test]
     async fn simple() {
         let handle = MyActorHandle::new(Name::MyActorA);
@@ -319,6 +330,5 @@ mod tests {
             }
         }
         assert_eq!(get_values().await, (110, 100));
-
     }
 }
