@@ -3,7 +3,7 @@ use tokio::sync::oneshot;
 
 pub trait Message: std::fmt::Debug + Send + Sync {}
 
-pub trait Name: std::fmt::Debug + std::fmt::Display + AsRef<str> + Send + Sync + Clone {}
+pub trait Name: std::fmt::Debug + std::fmt::Display + Send + Sync + Clone {}
 
 impl Name for &'static str {}
 
