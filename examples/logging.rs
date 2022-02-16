@@ -41,12 +41,12 @@ impl MyActorHandle {
     }
 
     pub async fn increment(&self) {
-        self.sender.notify(|| Message::Increment).await
+        self.sender.notify_with(|| Message::Increment).await
     }
 
     pub async fn get(&self) -> usize {
         self.sender
-            .call(|respond_to| Message::Get { respond_to })
+            .call_with(|respond_to| Message::Get { respond_to })
             .await
     }
 }

@@ -1,6 +1,6 @@
 [package]
 name = "acu"
-version = "0.2.3"
+version = "0.3.0"
 edition = "2021"
 authors = ["Grzegorz Barański <me@gbaranski.com>"]
 description = "Utilities for building asynchronous actors"
@@ -14,12 +14,15 @@ categories = ["asynchronous"]
 
 [dependencies]
 async-trait = "0.1.52"
+cfg-if = "1.0.0"
 futures = "0.3.21"
 log = { version = "0.4.14", optional = true }
-tokio = { version = "1.16.1", features = ["sync"] }
+tokio = { version = "1.16.1", features = ["sync", "rt", "macros"] }
+tokio-stream = { version = "0.1.8", features = ["sync"] }
 
 [features]
-default = ["log"]
+default = ["log", "master-slave"]
+master-slave = []
 
 [dev-dependencies]
 log = { version = "0.4.14" }
@@ -29,3 +32,11 @@ tokio = { version = "1.16.1", features = ["full"] }
 [[example]]
 name = "logging"
 required-features = ["log"]
+
+[[example]]
+name = "master-slave-broadcast"
+required-features = ["master-slave"]
+
+[[example]]
+name = "master-slave"
+required-features = ["master-slave"]
