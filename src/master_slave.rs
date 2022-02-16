@@ -402,8 +402,8 @@ mod tests {
         let handle_b = my_actor(Name::MyActorB);
         let master = {
             let master = BroadcasterMasterHandle::new();
-            master.push(handle_a).await;
-            master.push(handle_b).await;
+            assert_eq!(master.push(handle_a).await, 1);
+            assert_eq!(master.push(handle_b).await, 2);
             master
         };
         let get_values = || async {
@@ -431,8 +431,8 @@ mod tests {
             let handle_a = my_actor(Name::MyActorA);
             let handle_b = my_actor(Name::MyActorB);
             let master = MasterHandle::new();
-            master.push(handle_a).await;
-            master.push(handle_b).await;
+            assert_eq!(master.push(handle_a).await, 1);
+            assert_eq!(master.push(handle_b).await, 2);
             master
         };
         let increment = || async {
