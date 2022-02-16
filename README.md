@@ -92,6 +92,8 @@ Then each call/notify on the actor will get logged.
 
 ### Master/slave pattern
 
+You need to have `master-slave` feature enabled for the crate.
+
 The decision you need to make, is whether the Actor Message implements `Clone` trait, if yes you can use `BroadcasterMasterHandle` which allows you to use directly actor methods; if no, you're stuck with `MasterHandle` on which you can't use actor methods.
 
 #### Using `BroadcasterMasterHandle`(Message: Clone)
