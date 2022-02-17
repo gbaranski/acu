@@ -46,9 +46,9 @@ where
 
 #[async_trait]
 pub trait MasterExt<M, N>
-    where
-        M: Message,
-        N: MasterName,
+where
+    M: Message,
+    N: MasterName,
 {
     async fn slaves(&self) -> Vec<Handle<M, N>>;
     async fn find(&self, name: N) -> Option<Handle<M, N>>;
@@ -57,9 +57,9 @@ pub trait MasterExt<M, N>
 
 #[async_trait]
 impl<M, N> MasterExt<M, N> for Handle<MasterMessage<M, N>, N>
-    where
-        M: Message + 'static,
-        N: MasterName + 'static,
+where
+    M: Message + 'static,
+    N: MasterName + 'static,
 {
     async fn slaves(&self) -> Vec<Handle<M, N>> {
         self.sender
@@ -149,9 +149,9 @@ where
 }
 
 impl<M, N> Default for MasterHandle<M, N>
-    where
-        M: Message + Send + Sync + 'static,
-        N: MasterName + 'static,
+where
+    M: Message + Send + Sync + 'static,
+    N: MasterName + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -203,8 +203,8 @@ impl<'s, M: Message + Clone, N: MasterName> BroadcasterMaster<M, N> {
 #[derive(Debug)]
 pub struct BroadcasterMasterHandle<M, N>
 where
-    M: Message,
-    N: MasterName,
+    M: Message + Sync + Clone + 'static,
+    N: MasterName + 'static,
 {
     handle: Handle<M, N>,
     master: Handle<MasterMessage<M, N>, N>,
@@ -212,7 +212,7 @@ where
 
 impl<M, N> BroadcasterMasterHandle<M, N>
 where
-    M: Message + Send + Sync + Clone + 'static,
+    M: Message + Sync + Clone + 'static,
     N: MasterName + 'static,
 {
     pub fn new() -> Self {
@@ -235,9 +235,9 @@ where
 }
 
 impl<M, N> Default for BroadcasterMasterHandle<M, N>
-    where
-        M: Message + Send + Sync + Clone + 'static,
-        N: MasterName + 'static,
+where
+    M: Message + Send + Sync + Clone + 'static,
+    N: MasterName + 'static,
 {
     fn default() -> Self {
         Self::new()
@@ -245,9 +245,9 @@ impl<M, N> Default for BroadcasterMasterHandle<M, N>
 }
 
 impl<M, N> Clone for BroadcasterMasterHandle<M, N>
-    where
-        M: Message,
-        N: MasterName,
+where
+    M: Message + Sync + Clone + 'static,
+    N: MasterName + 'static,
 {
     fn clone(&self) -> Self {
         Self {
@@ -259,7 +259,7 @@ impl<M, N> Clone for BroadcasterMasterHandle<M, N>
 
 impl<M, N> Deref for BroadcasterMasterHandle<M, N>
 where
-    M: Message + Send + Sync + Clone + 'static,
+    M: Message + Sync + Clone + 'static,
     N: MasterName + 'static,
 {
     type Target = Handle<M, N>;
@@ -273,7 +273,7 @@ where
 #[async_trait]
 impl<M, N> MasterExt<M, N> for BroadcasterMasterHandle<M, N>
 where
-    M: Message + Send + Sync + Clone + 'static,
+    M: Message + Sync + Clone + 'static,
     N: MasterName + 'static,
 {
     async fn slaves(&self) -> Vec<Handle<M, N>> {
@@ -293,8 +293,6 @@ where
 //
 //
 // ============================================================================
-
-
 
 #[cfg(test)]
 mod tests {
