@@ -269,6 +269,17 @@ where
     }
 }
 
+impl<M, N> Into<Handle<M, N>> for BroadcasterMasterHandle<M, N>
+where
+    M: Message + Sync + Clone + 'static,
+    N: MasterName + 'static,
+{
+    fn into(self) -> Handle<M, N> {
+        self.handle
+    }
+}
+
+
 // TODO: Find a way to omit doing this
 #[async_trait]
 impl<M, N> MasterExt<M, N> for BroadcasterMasterHandle<M, N>
