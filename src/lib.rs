@@ -25,6 +25,9 @@ pub trait Name: std::fmt::Debug + std::fmt::Display + Send + Sync + Clone {}
 
 impl Name for &'static str {}
 
+#[cfg(feature = "uuid")]
+impl Name for uuid::Uuid {}
+
 #[derive(Debug)]
 pub struct Handle<M, N>
 where
