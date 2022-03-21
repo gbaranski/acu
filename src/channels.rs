@@ -4,7 +4,7 @@ use tokio::sync::broadcast;
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
-pub struct Sender<M: Message, N: Name> {
+pub struct Sender<M: Message, N: Name = &'static str> {
     pub name: N,
     sender: mpsc::Sender<M>,
 }
@@ -110,7 +110,7 @@ impl<M: Message, N: Name> Sender<M, N> {
     }
 }
 
-pub struct Receiver<M: Message, N: Name> {
+pub struct Receiver<M: Message, N: Name = &'static str> {
     pub name: N,
     receiver: mpsc::Receiver<M>,
 }

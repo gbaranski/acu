@@ -29,7 +29,7 @@ impl Name for &'static str {}
 impl Name for uuid::Uuid {}
 
 #[derive(Debug)]
-pub struct Handle<M, N>
+pub struct Handle<M, N = &'static str>
 where
     M: Message,
     N: Name,

@@ -9,7 +9,7 @@ enum Message {
 impl acu::Message for Message {}
 
 struct MyActor {
-    receiver: acu::Receiver<Message, &'static str>,
+    receiver: acu::Receiver<Message>,
     counter: usize,
 }
 
@@ -26,7 +26,7 @@ impl MyActor {
 
 #[derive(Debug, Clone)]
 struct MyActorHandle {
-    sender: acu::Sender<Message, &'static str>,
+    sender: acu::Sender<Message>,
 }
 
 impl MyActorHandle {
