@@ -137,7 +137,7 @@ where
     N: MasterName + 'static,
 {
     pub fn new() -> Self {
-        let (sender, receiver) = channel(8, N::master_name());
+        let (sender, receiver) = channel(N::master_name());
         let mut actor = Master {
             receiver,
             slaves: vec![],
@@ -216,8 +216,8 @@ where
     N: MasterName + 'static,
 {
     pub fn new() -> Self {
-        let (sender, receiver) = channel(8, N::master_name());
-        let (master_sender, master_receiver) = channel(8, N::master_name());
+        let (sender, receiver) = channel(N::master_name());
+        let (master_sender, master_receiver) = channel(N::master_name());
         let master = Master {
             receiver: master_receiver,
             slaves: vec![],
@@ -278,7 +278,6 @@ where
         self.handle
     }
 }
-
 
 // TODO: Find a way to omit doing this
 #[async_trait]
@@ -375,7 +374,7 @@ mod tests {
     type MyActorHandle = Handle<Message, Name>;
 
     fn my_actor(name: Name) -> MyActorHandle {
-        let (sender, receiver) = channel(8, name);
+        let (sender, receiver) = channel(name);
         let mut actor = MyActor {
             receiver,
             counter: 0,

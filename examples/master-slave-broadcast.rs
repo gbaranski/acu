@@ -61,7 +61,7 @@ impl MyActor {
 }
 
 fn my_actor(name: Name) -> MyActorHandle {
-    let (sender, receiver) = acu::channel(8, name);
+    let (sender, receiver) = acu::channel(name);
     let mut actor = MyActor {
         receiver,
         counter: 0,

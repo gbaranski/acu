@@ -31,7 +31,7 @@ struct MyActorHandle {
 
 impl MyActorHandle {
     pub fn new() -> Self {
-        let (sender, receiver) = acu::channel(8, "MyActor");
+        let (sender, receiver) = acu::channel("MyActor");
         let mut actor = MyActor {
             receiver,
             counter: 0,

@@ -6,7 +6,7 @@ use tokio::sync::oneshot;
 
 pub struct Sender<M: Message, N: Name = &'static str> {
     pub name: N,
-    sender: mpsc::Sender<M>,
+    sender: mpsc::UnboundedSender<M>,
 }
 
 impl<M: Message, N: Name> Clone for Sender<M, N> {
@@ -41,7 +41,7 @@ impl<M: Message, N: Name> Sender<M, N> {
 }
 
 impl<M: Message, N: Name> Sender<M, N> {
-    pub fn new_from_mpsc(sender: mpsc::Sender<M>, name: N) -> Self {
+    pub fn new_from_mpsc(sender: mpsc::UnboundedSender<M>, name: N) -> Self {
         Self { name, sender }
     }
 
@@ -50,7 +50,7 @@ impl<M: Message, N: Name> Sender<M, N> {
         #[cfg(feature = "log")]
         log::debug!("send `{:?}` on `{}`", message, self.name);
 
-        self.sender.send(message).await.unwrap();
+        self.sender.send(message).unwrap();
     }
 
     /// Send message to the receiver expecting a response.
@@ -65,7 +65,7 @@ impl<M: Message, N: Name> Sender<M, N> {
         #[cfg(feature = "log")]
         log::debug!("call `{:?}` on `{}`", message, self.name);
 
-        self.sender.send(message).await.unwrap();
+        self.sender.send(message).unwrap();
         let response = receiver.await.unwrap();
 
         #[cfg(feature = "log")]
@@ -90,7 +90,7 @@ impl<M: Message, N: Name> Sender<M, N> {
         #[cfg(feature = "log")]
         log::debug!("call many with `{:?}` on `{}`", message, self.name);
 
-        self.sender.send(message).await.unwrap();
+        self.sender.send(message).unwrap();
 
         BroadcastStream::new(receiver)
             .filter_map(|res| res.ok())
@@ -103,7 +103,7 @@ impl<M: Message, N: Name> Sender<M, N> {
         #[cfg(feature = "log")]
         log::debug!("notify `{:?}` on `{}`", message, self.name);
 
-        self.sender.send(message).await.unwrap();
+        self.sender.send(message).unwrap();
     }
 
     /// Send message to the receiver.
@@ -116,7 +116,7 @@ impl<M: Message, N: Name> Sender<M, N> {
 
 pub struct Receiver<M: Message, N: Name = &'static str> {
     pub name: N,
-    receiver: mpsc::Receiver<M>,
+    receiver: mpsc::UnboundedReceiver<M>,
 }
 
 impl<M: Message, N: Name> std::fmt::Debug for Receiver<M, N> {
@@ -126,7 +126,7 @@ impl<M: Message, N: Name> std::fmt::Debug for Receiver<M, N> {
 }
 
 impl<M: Message, N: Name> std::ops::Deref for Receiver<M, N> {
-    type Target = mpsc::Receiver<M>;
+    type Target = mpsc::UnboundedReceiver<M>;
 
     fn deref(&self) -> &Self::Target {
         &self.receiver
@@ -158,8 +158,8 @@ impl<M: Message, N: Name> std::ops::DerefMut for Receiver<M, N> {
 /// # Panics
 ///
 /// Panics if the buffer capacity is 0.
-pub fn channel<M: Message, N: Name>(buffer: usize, name: N) -> (Sender<M, N>, Receiver<M, N>) {
-    let (sender, receiver) = mpsc::channel(buffer);
+pub fn channel<M: Message, N: Name>(name: N) -> (Sender<M, N>, Receiver<M, N>) {
+    let (sender, receiver) = mpsc::unbounded_channel();
     let sender = Sender {
         name: name.clone(),
         sender,

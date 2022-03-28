@@ -100,7 +100,7 @@ mod tests {
 
     impl MyActorHandle {
         pub fn new() -> Self {
-            let (sender, receiver) = channel(8, "MyActor");
+            let (sender, receiver) = channel("MyActor");
             let mut actor = MyActor {
                 receiver,
                 counter: 0,
