@@ -41,6 +41,10 @@ impl<M: Message, N: Name> Sender<M, N> {
 }
 
 impl<M: Message, N: Name> Sender<M, N> {
+    pub async fn new_from_mpsc(sender: mpsc::Sender<M>, name: N) -> Self {
+        Self { name, sender }
+    }
+
     // TODO: change it to private
     pub async fn send(&self, message: M) {
         #[cfg(feature = "log")]
