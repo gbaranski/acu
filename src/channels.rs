@@ -41,7 +41,7 @@ impl<M: Message, N: Name> Sender<M, N> {
 }
 
 impl<M: Message, N: Name> Sender<M, N> {
-    pub async fn new_from_mpsc(sender: mpsc::Sender<M>, name: N) -> Self {
+    pub fn new_from_mpsc(sender: mpsc::Sender<M>, name: N) -> Self {
         Self { name, sender }
     }
 
