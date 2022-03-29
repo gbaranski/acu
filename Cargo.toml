@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/gbaranski/acu"
 license = "MIT"
 keywords = ["actor", "async"]
-categories = ["asynchronous"]
+categories = ["asynchronous", "concurrency", "rust-patterns"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
